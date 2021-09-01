@@ -10,7 +10,8 @@ monitoramento()
 	echo -e "\033[01;32m ---------------- \033[01;37m"
 	echo -e "\033[01;33m + Lista de Ips + \033[01;37m"
 	echo -e "\033[01;32m ---------------- \033[01;37m"
-
+	echo -e "\033[01;32m Acesse: https://www.test-ipv6.com/\033[01;37m"
+	echo -e ""
 	# Controle
 	ctr=1
 
@@ -34,6 +35,21 @@ monitoramento()
 	done
 }
 
+desativarIPv6()
+{
+
+# Disable IPv6 on Linux
+echo "Desativando IPv6 no boot..."
+cat > /etc/sysctl.conf << EOF
+net.ipv6.conf.all.disable_ipv6 = 1 
+net.ipv6.conf.default.disable_ipv6 = 1 
+net.ipv6.conf.lo.disable_ipv6 = 1 
+EOF
+
+# Load sysctl
+sysctl -p
+}
+
 # Execucao do programa
 execucao()
 {
@@ -49,20 +65,25 @@ execucao()
 	clear
 	echo -e "\033[01;34m\n ----- Execucao ----- \n\033[01;37m"	
 	echo -e "\033[01;35m --> IP atual: $ip \n\033[01;37m"
-	
 	echo -e "\033[01;33m # Placas de rede \n\033[01;37m"
 
-	# Placas de redes	
-	ifconfig | cut -f 1 -d " " | uniq -i
-
-	echo -n -e "\033[01;32m # Interface de rede: \033[01;37m"
+	# Placas de redes
+	ifconfig -s | awk {'print $1'}
+	echo -n -e "\033[01;32m\n # Interface de rede: \033[01;37m"
 	read placa
 	clear
 
 	# Tor
 	# service tor start
 	cd TorghostNG/
-	python3 torghostng.py -u -s --dns -c -m $placa -id RU
+	git pull -f
+	python3 torghostng.py -s --dns -c -m $placa -id RU
+
+	#######################
+	# Desativando IPV6    #
+	# vi /etc/sysctl.conf #
+	#######################
+	desativarIPv6
 
 	# Controle de IP
 	cd ../
@@ -77,7 +98,7 @@ desativacao()
 	echo -e "\033[01;34m\n  ----- Desativacao ----- \n\033[01;37m"
 	
 	# Finalizando conexao
-	cd Torghost/
+	cd TorghostNG/
 	python3 torghostng.py -x
 	cd ../
 
@@ -101,11 +122,12 @@ instalacao()
 		apt-get install privoxy
 
 		# GitHub
-		git clone https://github.com/githacktools/TorghostNG
+		git clone https://github.com/jermainlaforce/TorghostNG.git
 
 		# Instalar
 		cd TorghostNG
 		python3 install.py
+		git pull -f
 	fi
 }
 
